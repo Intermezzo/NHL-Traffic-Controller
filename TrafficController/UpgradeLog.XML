@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="TrafficController">
+</Property><Property Name="Solution File" Value="C:\Users\Qurx\Desktop\School\SENcontroller\NHL-Traffic-Controller\TrafficController\TrafficController.sln">
+</Property><Property Name="Date" Value="donderdag 29 september 2011">
+</Property><Property Name="Time" Value="13:40">
+</Property></Properties><Event ErrorLevel="0" Project="TrafficController" Source="TrafficController\TrafficController.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="TrafficController" Source="TrafficController\TrafficController.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="TrafficController.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="TrafficController.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="TrafficController" Source="TrafficController\TrafficController.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>
