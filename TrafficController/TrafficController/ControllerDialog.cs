@@ -27,15 +27,8 @@ namespace TrafficController
             FileDialog dialog = new OpenFileDialog();
             dialog.ShowDialog();
             string xmlFileName = dialog.FileName;
-            try
-            {
-                XMLData.LoadScript(xmlFileName);
-            }
-            catch
-            {
-                MessageBox.Show("The chosen file was not compatible");
-            }
 
+            //controller.loadXML(xmlFileName);
         }
 
         private void verboseEventsToolStripMenuItem_Click(object sender, EventArgs e)
