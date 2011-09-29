@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace SENinputGenerator
+namespace TrafficController
 {
 
     [Serializable]
@@ -19,15 +19,10 @@ namespace SENinputGenerator
             vehicles = new List<vehicle>();
         }
 
-        public void AddRangeVehicle(List<vehicle> vehiclesToAdd)
-        {
-            vehicles.AddRange(vehiclesToAdd);
-        }
-
         public static XMLData LoadScript(string FileName)
         {
             XMLData data = null;
-            FileStream stream = new FileStream("\\InputFiles\\" + FileName + ".xml", FileMode.Open);
+            FileStream stream = new FileStream(".\\" + FileName + ".xml", FileMode.Open);
             try
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(XMLData));
@@ -42,16 +37,6 @@ namespace SENinputGenerator
                 stream.Close();
             }
             return data;
-        }
-
-        public void SaveDataToFile(string FileName)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(XMLData));
-            Directory.CreateDirectory("\\InputFiles");
-            FileStream stream = new FileStream( FileName + ".xml", FileMode.Create);
-            serializer.Serialize(stream, this);
-            stream.Close();
-        }
-        
+        }       
     }
 }
