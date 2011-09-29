@@ -38,7 +38,7 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dumpEventsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.logView = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -115,16 +115,17 @@
             this.dumpEventsToolStripMenuItem.Name = "dumpEventsToolStripMenuItem";
             this.dumpEventsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.dumpEventsToolStripMenuItem.Text = "Dump Events";
+            this.dumpEventsToolStripMenuItem.Click += new System.EventHandler(this.dumpEventsToolStripMenuItem_Click);
             // 
-            // richTextBox1
+            // logView
             // 
-            this.richTextBox1.BackColor = System.Drawing.Color.White;
-            this.richTextBox1.Location = new System.Drawing.Point(15, 53);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(415, 195);
-            this.richTextBox1.TabIndex = 2;
-            this.richTextBox1.Text = "";
+            this.logView.BackColor = System.Drawing.Color.White;
+            this.logView.Location = new System.Drawing.Point(15, 53);
+            this.logView.Name = "logView";
+            this.logView.ReadOnly = true;
+            this.logView.Size = new System.Drawing.Size(415, 195);
+            this.logView.TabIndex = 2;
+            this.logView.Text = "";
             // 
             // label1
             // 
@@ -141,7 +142,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(444, 269);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.logView);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "ControllerDialog";
@@ -161,7 +162,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox logView;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem restartToolStripMenuItem;

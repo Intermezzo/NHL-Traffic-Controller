@@ -11,10 +11,19 @@ namespace TrafficController
 {
     public partial class ControllerDialog : Form
     {
+        private LoggerControl _loggerControl;
+        public LoggerControl LoggerControl
+        {
+            get { return _loggerControl; }
+        }
+
         public ControllerDialog()
         {
             InitializeComponent();
+            _loggerControl = new LoggerControl(logView);
         }
+
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -34,6 +43,11 @@ namespace TrafficController
         private void verboseEventsToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void dumpEventsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoggerControl.Log(LogType.Spam, "When finished we'll  dump devents here");
         }
     }
 }
