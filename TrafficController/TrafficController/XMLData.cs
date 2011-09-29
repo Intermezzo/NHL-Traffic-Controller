@@ -22,7 +22,7 @@ namespace TrafficController
         public static XMLData LoadScript(string FileName)
         {
             XMLData data = null;
-            FileStream stream = new FileStream(".\\" + FileName + ".xml", FileMode.Open);
+            FileStream stream = new FileStream(FileName, FileMode.Open);
             try
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(XMLData));

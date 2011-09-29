@@ -23,6 +23,18 @@ namespace TrafficController
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
+            // load xml
+            FileDialog dialog = new OpenFileDialog();
+            dialog.ShowDialog();
+            string xmlFileName = dialog.FileName;
+            try
+            {
+                XMLData.LoadScript(xmlFileName);
+            }
+            catch
+            {
+                MessageBox.Show("The chosen file was not compatible");
+            }
 
         }
 
