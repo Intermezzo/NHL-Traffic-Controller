@@ -3,24 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using TrafficController.Controller;
 
 namespace TrafficController
 {
     class Controller : IDisposable
     {
+        private ControllerDialog _controllerDialog;
         private XMLData _xmlData;
         private Thread _main;
+        private Server _server;
+
         private bool isStopped;
 
         //todo: start the new server, and the controller on a new thread
 
-        Controller()
+        public Controller(ControllerDialog controllerDialog, XMLData xmlData)
         {
-            _main = new Thread(mainLoop);
+            _main = new Thread(mainloop);
+            _server = new Server(controllerDialog.LoggerControl);
+            _controllerDialog = controllerDialog;
+            _xmlData = xmlData;
+
+            _main.Start();
         }
 
-        void mainloop()
+        private void mainloop()
         {
             while (!isStopped)
             {
@@ -29,25 +36,14 @@ namespace TrafficController
             }
         }
 
-        public void LoadXML(string filePath)
-        {
-            try
-            {
-                _xmlData = XMLData.LoadScript(filePath);
-                //LoggerControl.Log(LogType.Notice, "succesfully loaded XML (duration: " + _xmlData.vehicles[_xmlData.vehicles.Count - 1] + " ms with "+_xmlData.vehicles.Count+" vehicles)" );
-            }
-            catch
-            {
-                //LoggerControl.Log(LogType.Error, "Failed to load File");
-            }
-        }
-
         public void Stop()
         {
             isStopped = true;
+            _server.Stop();
+            _main.Join();
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             Stop();
         }

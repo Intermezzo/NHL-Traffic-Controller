@@ -45,8 +45,10 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileTLST});
+            this.menuStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(444, 24);
@@ -64,7 +66,7 @@
             this.toolStripSeparator2,
             this.debugToolStripMenuItem});
             this.FileTLST.Name = "FileTLST";
-            this.FileTLST.Size = new System.Drawing.Size(35, 20);
+            this.FileTLST.Size = new System.Drawing.Size(37, 20);
             this.FileTLST.Text = "File";
             // 
             // toolStripMenuItem1
@@ -84,6 +86,7 @@
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(152, 22);
             this.toolStripMenuItem2.Text = "Start";
+            this.toolStripMenuItem2.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
             // 
             // stopToolStripMenuItem
             // 
@@ -113,7 +116,7 @@
             // dumpEventsToolStripMenuItem
             // 
             this.dumpEventsToolStripMenuItem.Name = "dumpEventsToolStripMenuItem";
-            this.dumpEventsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.dumpEventsToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.dumpEventsToolStripMenuItem.Text = "Dump Events";
             this.dumpEventsToolStripMenuItem.Click += new System.EventHandler(this.dumpEventsToolStripMenuItem_Click);
             // 
