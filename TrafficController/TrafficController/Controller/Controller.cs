@@ -21,11 +21,11 @@ namespace TrafficController
             try
             {
                 _xmlData = XMLData.LoadScript(filePath);
-                // log the amount of vehecles + time length of file
+                //LoggerControl.Log(LogType.Notice, "succesfully loaded XML (duration: " + _xmlData.vehicles[_xmlData.vehicles.Count - 1] + " ms with "+_xmlData.vehicles.Count+" vehicles)" );
             }
             catch
             {
-                //LOG-> xml load has failed
+                //LoggerControl.Log(LogType.Error, "Failed to load File");
             }
         }
     }
