@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
+
 
 namespace TrafficController
 {
@@ -29,10 +31,36 @@ namespace TrafficController
 
         private void mainloop()
         {
+            Stopwatch timer = new Stopwatch();
+            Queue<vehicle> vehicleQueue = new Queue<vehicle>(_xmlData.vehicles);
+            vehicle candidate = null;
+            LaneManager laneManager = new LaneManager(_server); 
+            timer.Start();
             while (!isStopped)
             {
-                Thread.Sleep(1);
 
+                try
+                {
+                    if (candidate == null)
+                        candidate = vehicleQueue.Dequeue();
+                }
+                catch { }
+
+                if  (candidate != null && candidate.spawnTime < timer.ElapsedMilliseconds)
+                {
+                    string arg = String.Format("{0},{1},{2}", candidate.type, candidate.location, candidate.direction);
+                    _server.RPCSendQueue.Enqueue(new RPCData() { type = 0, arg = arg });
+                    candidate = null;
+                }
+
+                RPCData sensorInfo;
+                while (_server.RPCReceiveQueue.TryDequeue(out sensorInfo))
+                {
+                    laneManager.SetSensor(sensorInfo.arg.Split(',')[0], "", "");
+                }
+
+                laneManager.Update();
+                Thread.Sleep(1);
             }
         }
 

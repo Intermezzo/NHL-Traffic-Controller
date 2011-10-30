@@ -62,6 +62,8 @@
       <DependentUpon>ControllerDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Controller\Controller.cs" />
+    <Compile Include="Controller\Lanes\Lane.cs" />
+    <Compile Include="Controller\Lanes\LaneManager.cs" />
     <Compile Include="Helpers\LoggerControl.cs" />
     <Compile Include="Netcode\Server.cs" />
     <Compile Include="Program.cs" />
