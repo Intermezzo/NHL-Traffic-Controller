@@ -35,9 +35,18 @@ namespace TrafficController
             Queue<vehicle> vehicleQueue = new Queue<vehicle>(_xmlData.vehicles);
             vehicle candidate = null;
             LaneManager laneManager = new LaneManager(_server); 
-            timer.Start();
+            
+            //todo: wait on incoming connections first
             while (!isStopped)
             {
+                if (_server.IsStopped)
+                {
+                    Thread.Sleep(1);
+                    continue;
+                }
+
+                if (!timer.IsRunning)
+                    timer.Start();
 
                 try
                 {
@@ -46,20 +55,33 @@ namespace TrafficController
                 }
                 catch { }
 
-                if  (candidate != null && candidate.spawnTime < timer.ElapsedMilliseconds)
+                try
                 {
-                    string arg = String.Format("{0},{1},{2}", candidate.type, candidate.location, candidate.direction);
-                    _server.RPCSendQueue.Enqueue(new RPCData() { type = 0, arg = arg });
-                    candidate = null;
+                    if (candidate != null && candidate.spawnTime < timer.ElapsedMilliseconds)
+                    {
+                        string arg = String.Format("{0},{1},{2}", candidate.type, candidate.location, candidate.direction);
+                        _server.RPCSendQueue.Enqueue(new RPCData() { type = 0, arg = arg });
+                        candidate = null;
+                    }
+
+                    RPCData sensorInfo;
+                    while (_server.RPCReceiveQueue.TryDequeue(out sensorInfo))
+                    {
+                        string[] sensorInfoS = sensorInfo.arg.Split(',');
+                        laneManager.SetSensor(sensorInfoS[0], sensorInfoS[1], sensorInfoS[2]);
+                    }
+
+                    laneManager.Update();
+                }
+#if DEBUG
+                catch (EncoderFallbackException e)
+#else
+                catch (Exception e)
+#endif
+                {
+                    _controllerDialog.LoggerControl.Log(e);
                 }
 
-                RPCData sensorInfo;
-                while (_server.RPCReceiveQueue.TryDequeue(out sensorInfo))
-                {
-                    laneManager.SetSensor(sensorInfo.arg.Split(',')[0], "", "");
-                }
-
-                laneManager.Update();
                 Thread.Sleep(1);
             }
         }

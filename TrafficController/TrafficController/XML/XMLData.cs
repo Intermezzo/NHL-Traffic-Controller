@@ -10,8 +10,11 @@ namespace TrafficController
 
     [Serializable]
     [XmlInclude(typeof(vehicle))]
+    [XmlInclude(typeof(settings))]
+    [XmlRoot(ElementName = "trafficlightSimulator")]
     public class XMLData
     {
+        public settings settings;
         public List<vehicle> vehicles;
 
         public XMLData()

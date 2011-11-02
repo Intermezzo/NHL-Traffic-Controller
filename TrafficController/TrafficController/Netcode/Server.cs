@@ -19,7 +19,7 @@ namespace TrafficController
 
     class Server
     {
-        private const int C_PORT = 3450;
+        private const int C_PORT = 4321;
 
         private Thread _mainReceive, _mainSend, _main;
         private TcpClient _client;
@@ -47,7 +47,7 @@ namespace TrafficController
             try 
             {
                 _logger.Log(LogType.Notice, "Listening for incoming clients."); 
-                TcpListener tcpListener = new TcpListener(IPAddress.Any, 3450);
+                TcpListener tcpListener = new TcpListener(IPAddress.Any, 4321);
                 tcpListener.Start();
                 _client = tcpListener.AcceptTcpClient();
                 _logger.Log(LogType.Notice, String.Format("Client {0} connected", _client.Client.LocalEndPoint)); 

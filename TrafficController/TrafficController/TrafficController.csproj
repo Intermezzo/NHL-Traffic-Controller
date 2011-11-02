@@ -69,6 +69,7 @@
     <Compile Include="Netcode\Server.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XML\settings.cs" />
     <Compile Include="XML\Vehicle.cs" />
     <Compile Include="XML\XMLData.cs" />
     <EmbeddedResource Include="ControllerDialog.resx">

@@ -38,21 +38,27 @@ namespace TrafficController
     class Lane
     {
 
+
         private string _id;
         private int _laneNr;
         private Direction _direction;
         private Vehicle _vehicle = Vehicle.NONE;
 
         private int _priority;
+        private int _queueCount = 0;
         private TrafficLighState _state;
 
         private Stopwatch timer;
-        private int timeout;
+        private int _timeout;
 
         private Server _server;
 
         public string Id { get { return _id; } }
         public TrafficLighState State { get { return _state; } }
+        public int QueueCount { get { return _queueCount; } }
+        public Vehicle Vehicle { get { return _vehicle; } }
+        public int Timeout { get { return _timeout; } }
+        public int TimeLeft { get { return _timeout - (int)timer.ElapsedMilliseconds; } }
 
 
         public Lane (string id, Server server, Vehicle type)
@@ -64,6 +70,7 @@ namespace TrafficController
 
             _server = server;
             _vehicle = type;
+            _state = TrafficLighState.Red;
         }
 
         public void SetTafficLight(TrafficLighState state)
@@ -73,12 +80,22 @@ namespace TrafficController
             _server.RPCSendQueue.Enqueue(new RPCData(){type = 1, arg = arg});
         }
 
+        public void IncreaseQueue()
+        {
+            _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount + 1 : 1;
+        }
+
+        public void DecreaseQueue()
+        {
+            _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount - 1 : 0;
+        }
+
         public void SetTafficLight(TrafficLighState state, int timeout)
         {
             timer = new Stopwatch();
             timer.Start();
             SetTafficLight(state);
-            this.timeout = timeout;
+            this._timeout = timeout;
         }
 
         //compatibility matrix for same-lane types
@@ -105,12 +122,16 @@ namespace TrafficController
 
         public void Update()
         {
-            if (timer.ElapsedMilliseconds > timeout)
+            if (timer == null)
+                return;
+            if (timer.ElapsedMilliseconds > _timeout)
             {
                 if (_state == TrafficLighState.Green)
-                    SetTafficLight(TrafficLighState.Orange, 15000);
+                    SetTafficLight(TrafficLighState.Orange, 6000);
                 else
                 {
+                    if (Vehicle != Vehicle.CAR)
+                        DecreaseQueue();
                     SetTafficLight(TrafficLighState.Red);
                     timer.Reset();
                 }
