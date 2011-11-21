@@ -19,10 +19,12 @@ namespace TrafficController
         Server _server;
         Dictionary<string, Lane> _lanes = new Dictionary<string,Lane>();
         LinkedList<Lane> _waitingList = new LinkedList<Lane>();
+        private settings _settings;
 
-        public LaneManager(Server server)
+        public LaneManager(Server server, settings Settings)
         {
             _server = server;
+            _settings = Settings;
 
             //generate all lanes
             foreach (char side in new []{'N', 'S', 'E', 'W' })
@@ -30,7 +32,7 @@ namespace TrafficController
                 for (int laneNr = 1; laneNr <= 8; laneNr++)
                 {
                     string id = String.Format("{0}{1}", side, laneNr);
-                    _lanes[id] = LaneFactory.FromLaneNr(id, laneNr, _server);
+                    _lanes[id] = LaneFactory.FromLaneNr(id, laneNr, _server, _settings.orangeTime);
                 }
             }
         }
@@ -55,7 +57,7 @@ namespace TrafficController
                     {
                         //todo check off state
                         if (foo.State == TrafficLighState.Red)
-                            foo.SetTafficLight(TrafficLighState.Green, 15000);
+                            foo.SetTafficLight(TrafficLighState.Green, _settings.maxGreenTime);
                     }
                     else
                     {
@@ -88,24 +90,52 @@ namespace TrafficController
             foreach (KeyValuePair<string, Lane> lane in _lanes)
             {
                 lane.Value.Update();
-                if (lane.Value.QueueCount == 0)
+                if (lane.Value.QueueCount == 0 && _waitingList.Contains(lane.Value))
                     _waitingList.Remove(lane.Value);
             }
 
             //if all active lanes are compatible give the green signal
-            var activeLanes = GetActiveLanes();
+            var activeLanes = GetActiveLanes().ToList();
 
-            var node = _waitingList.First;
-            while (node != null)
+            var waitingList = _waitingList.OrderByDescending((l) => l.Priority);
+            foreach (Lane lane in waitingList)
+            {
+
+                if (activeLanes.All((l) => l.IsCompatible(lane)))
+                {
+                    lane.SetTafficLight(TrafficLighState.Green, _settings.maxGreenTime);
+                    activeLanes.Add(lane);
+                    _waitingList.Remove(lane);
+                }
+                else
+                {
+                    //find the lowest priority candidates which are passed the minimal green time and 
+                    //would make this lane compatible if not active.
+                    var foo = activeLanes.FindAll((l) => l.State == TrafficLighState.Green && 
+                                                        l.TimeElapsed > _settings.minGreenTime &&
+                                                        l.Priority < lane.Priority &&
+                                                        !lane.IsCompatible(l));
+                    bool removingGreentimeMakesCompatible = activeLanes.TrueForAll((l) => lane.IsCompatible(l) || foo.Contains(l));
+
+                    if (removingGreentimeMakesCompatible)
+                    {
+                        foreach (Lane bar in foo)
+                            bar.SetTafficLight(TrafficLighState.Orange);
+                    }
+                }
+            }
+
+            /*var node = _waitingList.First;
+            /while (node != null)
             {
                 var nextNode = node.Next;
                 if (activeLanes.All((l) => l.IsCompatible(node.Value)))
                 {
-                    node.Value.SetTafficLight(TrafficLighState.Green, 20000);
+                    node.Value.SetTafficLight(TrafficLighState.Green, _settings.maxGreenTime);
                     _waitingList.Remove(node);
                 }
                 node = nextNode;
-            }
+            }*/
         }
     }
 }

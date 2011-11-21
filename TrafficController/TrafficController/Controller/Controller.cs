@@ -34,7 +34,7 @@ namespace TrafficController
             Stopwatch timer = new Stopwatch();
             Queue<vehicle> vehicleQueue = new Queue<vehicle>(_xmlData.vehicles);
             vehicle candidate = null;
-            LaneManager laneManager = new LaneManager(_server); 
+            LaneManager laneManager = new LaneManager(_server,_xmlData.settings); 
             
             //todo: wait on incoming connections first
             while (!isStopped)

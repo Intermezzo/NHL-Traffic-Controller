@@ -27,12 +27,20 @@ namespace TrafficController
         BICYCLE
     }
 
-    public enum Direction
+    public enum WindDirection
     {
         North,
         East,
         South,
         West
+    }
+
+    public enum Direction
+    {
+        Self = 0,
+        Left = 1,
+        Right = 3,
+        Forward = 2
     }
 
     class Lane
@@ -41,7 +49,7 @@ namespace TrafficController
 
         private string _id;
         private int _laneNr;
-        private Direction _direction;
+        private WindDirection _direction;
         private Vehicle _vehicle = Vehicle.NONE;
 
         private int _priority;
@@ -49,6 +57,7 @@ namespace TrafficController
         private TrafficLighState _state;
 
         private Stopwatch timer;
+        private Stopwatch waitTimer = new Stopwatch();
         private int _timeout;
 
         private Server _server;
@@ -59,18 +68,46 @@ namespace TrafficController
         public Vehicle Vehicle { get { return _vehicle; } }
         public int Timeout { get { return _timeout; } }
         public int TimeLeft { get { return _timeout - (int)timer.ElapsedMilliseconds; } }
+        public int TimeElapsed { get { return (int)timer.ElapsedMilliseconds; } }
+        public int Priority 
+        { 
+            get 
+            { return _priority + Math.Max(QueueCount, 30) + 
+                Math.Max(0, Math.Min((int)waitTimer.ElapsedMilliseconds/1000 - _priority, 500)); 
+            } 
+        }
 
 
-        public Lane (string id, Server server, Vehicle type)
+        public Lane (string id, Server server, Vehicle type, int orangeTime)
         {
             _id = id;
             _laneNr = Convert.ToInt32(id.Substring(1,1));
-            _direction = (Direction) Enum.Parse(typeof(Direction),
-                Enum.GetNames(typeof(Direction)).First((s) => s.StartsWith(id.Substring(0, 1))), true);
+            _direction = (WindDirection) Enum.Parse(typeof(WindDirection),
+                Enum.GetNames(typeof(WindDirection)).First((s) => s.StartsWith(id.Substring(0, 1))), true);
 
             _server = server;
             _vehicle = type;
             _state = TrafficLighState.Red;
+            _orangeTime = orangeTime;
+
+            int windPriority = _direction == WindDirection.North || _direction == WindDirection.South ? 10 : 0;
+            switch (type)
+            {
+                case Vehicle.PEDESTRIAN:
+                    _priority = 73;
+                    break;
+                case Vehicle.BICYCLE:
+                    _priority = 100;
+                    break;
+                case Vehicle.CAR:
+                    _priority = 200 + windPriority;
+                    break;
+                case Vehicle.BUS:
+                    _priority = 300 + windPriority;
+                    break;
+            }
+
+            _compatibilityList = new bool[][,] { _compatibilitySelf, _compatibilityLeft, _compatibilityStraight, _compatibilityRight };
         }
 
         public void SetTafficLight(TrafficLighState state)
@@ -83,11 +120,18 @@ namespace TrafficController
         public void IncreaseQueue()
         {
             _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount + 1 : 1;
+
+            if(!waitTimer.IsRunning)
+                waitTimer.Start();
         }
 
         public void DecreaseQueue()
         {
             _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount - 1 : 0;
+
+            if (_queueCount == 0)
+                waitTimer.Reset();
+            
         }
 
         public void SetTafficLight(TrafficLighState state, int timeout)
@@ -98,23 +142,72 @@ namespace TrafficController
             this._timeout = timeout;
         }
 
-        //compatibility matrix for same-lane types
-        public bool[,] _compatibility = new[,] { {true,  true,  true,  true,  true,  true,  true,  true },
-                                                 {true,  true,  false, false, false, false, false, false},
-                                                 {true,  true,  true,  true,  false, false, false, true },
-                                                 {true,  true,  true,  true,  true,  false, false, true },
-                                                 {true,  true,  false, true,  true,  false, false, true },
-                                                 {true,  false, false, false, false, false, false, true },
-                                                 {false, false, false, false, false, false, true,  true },
-                                                 {true,  false, true,  true,  true,  true,  true,  true } };
+        //compatibility matrix for same-lane types    P1     P2     CL     CS     CR     BL     BS     BR     F      FR
+        private bool[,] _compatibilitySelf = new[,]{    {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
+                                                        {true,  true,  false, false, false, false, false, false, false, false},
+                                                        {true,  false, true,  true,  true,  false, true,  true,  false, true },
+                                                        {true,  false, true,  true,  true,  false, false, true,  false, true },
+                                                        {true,  false, false, true,  true,  false, false, false, false, true },
+                                                        {true,  false, false, false, false, true,  false, false, false, true },
+                                                        {true,  false, true,  false, false, false, true,  false, false, true },
+                                                        {true,  false, true,  true,  false, false, false, true,  false, true },
+                                                        {false, false, false, false, false, false, false, false, true,  true }, 
+                                                        {true,  false, true,  true,  true,  true,  true,  true,  true,  true } };
         
+        // TOP =  Which light is Green on the other lane 
+        // LEFT = The lane you are checking
+
+
+        //compatibility matrix for left-lane types        P1     P2     CL     CS     CR     BL     BS     BR     F      FR       
+        private bool[,] _compatibilityLeft = new[,]{    {true,  true,  true,  true,  false, true,  true,  false, false, false},
+                                                        {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
+                                                        {false, true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  true,  false, true,  true,  false, true,  false, true },
+                                                        {false, true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  true,  false, true,  true,  false, true,  false, true },
+                                                        {false, false, false, false, false, false, false, false, true,  true }, 
+                                                        {true,  true,  true,  true,  true,  true,  true,  true,  true,  true } };
+
+        //compatibility matrix for right-lane types       P1     P2     CL     CS     CR     BL     BS     BR     F      FR
+        private bool[,] _compatibilityRight = new[,]{   {true,  true,  false, true,  true,  false, true,  true,  false, true },
+                                                        {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {false, true,  true,  false, true,  true,  false, true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {true,  true,  false, false, true,  false, false, true,  false, true },
+                                                        {false, true,  true,  false, true,  true,  false, true,  false, true },
+                                                        {false, false, false, false, false, false, false, false, true,  true }, 
+                                                        {false, true,  true,  true,  true,  true,  true,  true,  true,  true } };
+
+        
+        //compatibility matrix for straight-lane types    P1     P2     CL     CS     CR     BL     BS     BR     F      FR
+        private bool[,] _compatibilityStraight=new[,]{  {true,  true,  true,  false, true,  true,  false, true,  false, true },
+                                                        {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
+                                                        {true,  true,  true,  false, false, true,  false, false, false, true },
+                                                        {false, true,  false, true,  true,  false, true,  true,  false, true },
+                                                        {true,  true,  false, true,  true,  false, true,  true,  false, true },
+                                                        {true,  true,  true,  false, false, true,  false, false, false, true },
+                                                        {false, true,  false, true,  true,  false, true,  true,  false, true },
+                                                        {true,  true,  false, true,  true,  false, true,  true,  false, true },
+                                                        {false, false, false, false, false, false, false, false, true,  true }, 
+                                                        {true,  true,  true,  true,  true,  true,  true,  true,  true,  true } };
+
+        private Direction[] _W2Direction = { Direction.Self, Direction.Left, Direction.Forward, Direction.Right };
+        private bool[][,] _compatibilityList;
+        private int _orangeTime;
         public bool IsCompatible(Lane other)
         {
-            if (other == this)
-                return true;
+            //if (other == this)
+            //    return true;
+
+            Direction dir = _W2Direction[(int)(other._direction + 4 - _direction) % 4];
+            bool[,] isCompat = _compatibilityList[(int)dir];
 
             if(_direction == other._direction)
-                return _compatibility[_laneNr, other._laneNr];
+                return isCompat[_laneNr, other._laneNr];
 
             //todo: add other lane stuff from different directions
             return false;
@@ -127,7 +220,7 @@ namespace TrafficController
             if (timer.ElapsedMilliseconds > _timeout)
             {
                 if (_state == TrafficLighState.Green)
-                    SetTafficLight(TrafficLighState.Orange, 6000);
+                    SetTafficLight(TrafficLighState.Orange, _orangeTime);
                 else
                 {
                     if (Vehicle != Vehicle.CAR)
