@@ -139,7 +139,7 @@ namespace TrafficController
             timer = new Stopwatch();
             timer.Start();
             SetTafficLight(state);
-            this._timeout = timeout;
+            this._timeout = timeout * 1000;
         }
 
         //compatibility matrix for same-lane types    P1     P2     CL     CS     CR     BL     BS     BR     F      FR

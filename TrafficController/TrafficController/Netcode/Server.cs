@@ -37,6 +37,7 @@ namespace TrafficController
             RPCSendQueue = new ConcurrentQueue<RPCData>();
             RPCReceiveQueue = new ConcurrentQueue<RPCData>();
             _logger = logger;
+            IsStopped = true;
 
             _main = new Thread(listenSingleClient);
             _main.Start();
@@ -50,6 +51,7 @@ namespace TrafficController
                 TcpListener tcpListener = new TcpListener(IPAddress.Any, 4321);
                 tcpListener.Start();
                 _client = tcpListener.AcceptTcpClient();
+                IsStopped = false;
                 _logger.Log(LogType.Notice, String.Format("Client {0} connected", _client.Client.LocalEndPoint)); 
                 _clientStream = _client.GetStream();
 
