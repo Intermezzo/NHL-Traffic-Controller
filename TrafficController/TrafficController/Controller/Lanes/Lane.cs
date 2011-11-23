@@ -50,6 +50,7 @@ namespace TrafficController
         private string _id;
         private int _laneNr;
         private WindDirection _direction;
+        
         private Vehicle _vehicle = Vehicle.NONE;
 
         private int _priority;
@@ -62,6 +63,8 @@ namespace TrafficController
 
         private Server _server;
 
+
+        public Direction BusDirection { get; set; }
         public string Id { get { return _id; } }
         public TrafficLighState State { get { return _state; } }
         public int QueueCount { get { return _queueCount; } }
@@ -69,6 +72,31 @@ namespace TrafficController
         public int Timeout { get { return _timeout; } }
         public int TimeLeft { get { return _timeout - (int)timer.ElapsedMilliseconds; } }
         public int TimeElapsed { get { return (int)timer.ElapsedMilliseconds; } }
+        public int CompatLane
+        {
+            get 
+            {
+                int initialLane = _laneNr;
+                if (_vehicle == Vehicle.BICYCLE)
+                    return initialLane + 2;
+
+                if (_vehicle == Vehicle.BUS)
+                {
+                    switch (BusDirection)
+                    {
+                        case Direction.Forward:
+                            return initialLane + 1;
+                        case Direction.Right:
+                            return initialLane + 2;
+                        default:
+                            return initialLane;
+                    }
+                }
+                return initialLane;
+            }
+
+        }
+
         public int Priority 
         { 
             get 
@@ -89,6 +117,8 @@ namespace TrafficController
             _vehicle = type;
             _state = TrafficLighState.Red;
             _orangeTime = orangeTime;
+
+
 
             int windPriority = _direction == WindDirection.North || _direction == WindDirection.South ? 10 : 0;
             switch (type)
@@ -206,11 +236,15 @@ namespace TrafficController
             Direction dir = _W2Direction[(int)(other._direction + 4 - _direction) % 4];
             bool[,] isCompat = _compatibilityList[(int)dir];
 
-            if(_direction == other._direction)
-                return isCompat[_laneNr, other._laneNr];
+            return isCompat[CompatLane, other.CompatLane];
 
             //todo: add other lane stuff from different directions
             return false;
+        }
+
+        public Direction GetRelativeDirection(WindDirection other)
+        {
+            return _W2Direction[(int)(other + 4 - _direction) % 4];
         }
 
         public void Update()
