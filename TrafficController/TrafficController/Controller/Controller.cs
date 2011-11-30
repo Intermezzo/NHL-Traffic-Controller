@@ -17,6 +17,16 @@ namespace TrafficController
 
         private bool isStopped;
 
+        bool outageDisabled;
+
+        static TimeSpan CAR_OUTAGE_START = new TimeSpan(0);
+        static TimeSpan CAR_OUTAGE_TIME = new TimeSpan(2, 0, 0);
+
+        static TimeSpan ALL_DISABLED_START = new TimeSpan(0, 0, 0);
+        static TimeSpan ALL_DISABLED_TIME = new TimeSpan(4, 0, 0);
+
+        static TimeSpan ALL_OUTAGE_START = new TimeSpan(2, 0, 0);
+        static TimeSpan ALL_OUTAGE_TIME = new TimeSpan(2, 0, 0);
         //todo: start the new server, and the controller on a new thread
 
         public Controller(ControllerDialog controllerDialog, XMLData xmlData)
@@ -57,7 +67,7 @@ namespace TrafficController
 
                 try
                 {
-                    if (candidate != null && candidate.spawnTime < timer.ElapsedMilliseconds)
+                    if (candidate != null && candidate.spawnTime * 10 < timer.ElapsedMilliseconds)
                     {
                         string arg = String.Format("{0},{1},{2}", candidate.type, candidate.location, candidate.direction);
                         _server.RPCSendQueue.Enqueue(new RPCData() { type = 0, arg = arg });
@@ -69,6 +79,14 @@ namespace TrafficController
                     {
                         string[] sensorInfoS = sensorInfo.arg.Split(',');
                         laneManager.SetSensor(sensorInfoS[0], sensorInfoS[1], sensorInfoS[2]);
+                    }
+
+                    DateTime currentDate = _xmlData.settings.startDate + new TimeSpan(timer.ElapsedTicks);
+
+                    if (currentDate.TimeOfDay > ALL_DISABLED_START && !outageDisabled && currentDate.TimeOfDay < ALL_DISABLED_START + ALL_DISABLED_TIME)
+                    {
+                        laneManager.SetAnyTrafficLights((l) => true, (int) ALL_DISABLED_TIME.TotalMilliseconds, TrafficLightState.Outage);
+                        outageDisabled = true;
                     }
 
                     laneManager.Update();

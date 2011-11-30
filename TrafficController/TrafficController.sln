@@ -3,7 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficController", "TrafficController\TrafficController.csproj", "{03F22710-5404-44DA-BC4F-463D99615DDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficTester", "TrafficTester\TrafficTester.csproj", "{E4D9F87A-2A58-4CE7-8BEC-B5B60EA1DC9C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{03F22710-5404-44DA-BC4F-463D99615DDB} = {03F22710-5404-44DA-BC4F-463D99615DDB}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2C0CBD61-F017-4B5B-8E29-F3654D922965}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+		TrafficController.vsmdi = TrafficController.vsmdi
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = TrafficController.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -13,6 +28,10 @@ Global
 		{03F22710-5404-44DA-BC4F-463D99615DDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03F22710-5404-44DA-BC4F-463D99615DDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03F22710-5404-44DA-BC4F-463D99615DDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4D9F87A-2A58-4CE7-8BEC-B5B60EA1DC9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4D9F87A-2A58-4CE7-8BEC-B5B60EA1DC9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4D9F87A-2A58-4CE7-8BEC-B5B60EA1DC9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4D9F87A-2A58-4CE7-8BEC-B5B60EA1DC9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

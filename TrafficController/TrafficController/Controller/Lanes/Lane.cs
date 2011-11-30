@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace TrafficController
 {
-    public enum TrafficLighState
+    public enum TrafficLightState
     {
         Green = 1,
         Orange = 2,
@@ -43,7 +43,7 @@ namespace TrafficController
         Forward = 2
     }
 
-    class Lane
+    public class Lane
     {
 
 
@@ -55,7 +55,7 @@ namespace TrafficController
 
         private int _priority;
         private int _queueCount = 0;
-        private TrafficLighState _state;
+        private TrafficLightState _state;
 
         private Stopwatch timer;
         private Stopwatch waitTimer = new Stopwatch();
@@ -66,7 +66,7 @@ namespace TrafficController
 
         public Direction BusDirection { get; set; }
         public string Id { get { return _id; } }
-        public TrafficLighState State { get { return _state; } }
+        public TrafficLightState State { get { return _state; } }
         public int QueueCount { get { return _queueCount; } }
         public Vehicle Vehicle { get { return _vehicle; } }
         public int Timeout { get { return _timeout; } }
@@ -76,7 +76,7 @@ namespace TrafficController
         {
             get 
             {
-                int initialLane = _laneNr;
+                int initialLane = _laneNr - 1;
                 if (_vehicle == Vehicle.BICYCLE)
                     return initialLane + 2;
 
@@ -115,7 +115,7 @@ namespace TrafficController
 
             _server = server;
             _vehicle = type;
-            _state = TrafficLighState.Red;
+            _state = TrafficLightState.Red;
             _orangeTime = orangeTime;
 
 
@@ -140,7 +140,7 @@ namespace TrafficController
             _compatibilityList = new bool[][,] { _compatibilitySelf, _compatibilityLeft, _compatibilityStraight, _compatibilityRight };
         }
 
-        public void SetTafficLight(TrafficLighState state)
+        public void SetTafficLight(TrafficLightState state)
         {
             this._state = state;
             string arg = string.Format("{0},{1}",_id, (int)state);
@@ -164,7 +164,7 @@ namespace TrafficController
             
         }
 
-        public void SetTafficLight(TrafficLighState state, int timeout)
+        public void SetTafficLight(TrafficLightState state, int timeout)
         {
             timer = new Stopwatch();
             timer.Start();
@@ -172,7 +172,7 @@ namespace TrafficController
             this._timeout = timeout * 1000;
         }
 
-        //compatibility matrix for same-lane types    P1     P2     CL     CS     CR     BL     BS     BR     F      FR
+        //compatibility matrix for same-lane types        P1     P2     CL     CS     CR     BL     BS     BR     F      FR
         private bool[,] _compatibilitySelf = new[,]{    {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
                                                         {true,  true,  false, false, false, false, false, false, false, false},
                                                         {true,  false, true,  true,  true,  false, true,  true,  false, true },
@@ -253,13 +253,13 @@ namespace TrafficController
                 return;
             if (timer.ElapsedMilliseconds > _timeout)
             {
-                if (_state == TrafficLighState.Green)
-                    SetTafficLight(TrafficLighState.Orange, _orangeTime);
+                if (_state == TrafficLightState.Green)
+                    SetTafficLight(TrafficLightState.Orange, _orangeTime);
                 else
                 {
                     if (Vehicle != Vehicle.CAR)
                         DecreaseQueue();
-                    SetTafficLight(TrafficLighState.Red);
+                    SetTafficLight(TrafficLightState.Red);
                     timer.Reset();
                 }
             }

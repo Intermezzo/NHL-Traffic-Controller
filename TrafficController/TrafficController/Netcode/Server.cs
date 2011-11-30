@@ -17,7 +17,7 @@ namespace TrafficController
     }
 
 
-    class Server
+    public class Server
     {
         private const int C_PORT = 4321;
 
