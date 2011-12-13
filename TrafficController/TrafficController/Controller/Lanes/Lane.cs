@@ -62,9 +62,24 @@ namespace TrafficController
         private int _timeout;
 
         private Server _server;
+        private Direction _oldBusDirection = Direction.Self;
 
+        public Queue<Direction> BusDirections { get; set; }
+        public Direction BusDirection
+        {
+            get
+            {
+                if (BusDirections.Count > 0)
+                    return BusDirections.Peek();
+                
+                return Direction.Self;
+            }
+            set
+            {
+                BusDirections.Enqueue(value);
+            }
+        }
 
-        public Direction BusDirection { get; set; }
         public string Id { get { return _id; } }
         public TrafficLightState State { get { return _state; } }
         public int QueueCount { get { return _queueCount; } }
@@ -72,6 +87,8 @@ namespace TrafficController
         public int Timeout { get { return _timeout; } }
         public int TimeLeft { get { return _timeout - (int)timer.ElapsedMilliseconds; } }
         public int TimeElapsed { get { return (int)timer.ElapsedMilliseconds; } }
+
+
         public int CompatLane
         {
             get 
@@ -82,7 +99,8 @@ namespace TrafficController
 
                 if (_vehicle == Vehicle.BUS)
                 {
-                    switch (BusDirection)
+                    Direction dirC = State == TrafficLightState.Orange ? _oldBusDirection : BusDirection;
+                    switch (dirC)
                     {
                         case Direction.Forward:
                             return initialLane + 1;
@@ -106,7 +124,7 @@ namespace TrafficController
         }
 
 
-        public Lane (string id, Server server, Vehicle type, int orangeTime)
+        public Lane(string id, Server server, Vehicle type, settings Settings)
         {
             _id = id;
             _laneNr = Convert.ToInt32(id.Substring(1,1));
@@ -116,7 +134,8 @@ namespace TrafficController
             _server = server;
             _vehicle = type;
             _state = TrafficLightState.Red;
-            _orangeTime = orangeTime;
+            _orangeTime = Settings.orangeTime;
+            BusDirections = new Queue<Direction>();
 
 
 
@@ -149,7 +168,7 @@ namespace TrafficController
 
         public void IncreaseQueue()
         {
-            _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount + 1 : 1;
+            _queueCount = this.Vehicle == Vehicle.CAR || this.Vehicle == Vehicle.BUS ? _queueCount + 1 : 1;
 
             if(!waitTimer.IsRunning)
                 waitTimer.Start();
@@ -157,10 +176,26 @@ namespace TrafficController
 
         public void DecreaseQueue()
         {
-            _queueCount = this.Vehicle == Vehicle.CAR ? _queueCount - 1 : 0;
+            _queueCount = this.Vehicle == Vehicle.CAR || this.Vehicle == Vehicle.BUS ? _queueCount - 1 : 0;
+            if (this.Vehicle == Vehicle.BUS)
+            {
+                _oldBusDirection = BusDirections.Dequeue();
+                if (_oldBusDirection != BusDirection || BusDirection == Direction.Self)
+                {
+                    SetTafficLight(TrafficLightState.Orange, _orangeTime);
+                }
+                
+            }
+
 
             if (_queueCount == 0)
+            {
+                if ((this.Vehicle == Vehicle.CAR) && timer.ElapsedMilliseconds > _minGreenTime * 1000)
+                {
+                    SetTafficLight(TrafficLightState.Orange, _orangeTime);
+                }
                 waitTimer.Reset();
+            }
             
         }
 
@@ -216,10 +251,10 @@ namespace TrafficController
         //compatibility matrix for straight-lane types    P1     P2     CL     CS     CR     BL     BS     BR     F      FR
         private bool[,] _compatibilityStraight=new[,]{  {true,  true,  true,  false, true,  true,  false, true,  false, true },
                                                         {true,  true,  true,  true,  true,  true,  true,  true,  false, true },
-                                                        {true,  true,  true,  false, false, true,  false, false, false, true },
+                                                        {true,  true,  true,  false, false, false, false, false, false, true },
                                                         {false, true,  false, true,  true,  false, true,  true,  false, true },
                                                         {true,  true,  false, true,  true,  false, true,  true,  false, true },
-                                                        {true,  true,  true,  false, false, true,  false, false, false, true },
+                                                        {true,  true,  false, false, false, false, false, false, false, true },
                                                         {false, true,  false, true,  true,  false, true,  true,  false, true },
                                                         {true,  true,  false, true,  true,  false, true,  true,  false, true },
                                                         {false, false, false, false, false, false, false, false, true,  true }, 
@@ -228,6 +263,7 @@ namespace TrafficController
         private Direction[] _W2Direction = { Direction.Self, Direction.Left, Direction.Forward, Direction.Right };
         private bool[][,] _compatibilityList;
         private int _orangeTime;
+        private int _minGreenTime;
         public bool IsCompatible(Lane other)
         {
             //if (other == this)
@@ -257,7 +293,7 @@ namespace TrafficController
                     SetTafficLight(TrafficLightState.Orange, _orangeTime);
                 else
                 {
-                    if (Vehicle != Vehicle.CAR)
+                    if (Vehicle != Vehicle.CAR && Vehicle != Vehicle.BUS)
                         DecreaseQueue();
                     SetTafficLight(TrafficLightState.Red);
                     timer.Reset();

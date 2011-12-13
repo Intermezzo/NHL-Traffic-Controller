@@ -7,22 +7,22 @@ namespace TrafficController
 {
     static class LaneFactory
     {
-        static public Lane FromLaneNr(string id, int laneNr, Server server, int orangeTime )
+        static public Lane FromLaneNr(string id, int laneNr, Server server, settings Settings )
         {
             switch (laneNr)
             {
                 case 1:
                 case 2:
-                    return new Lane(id, server, Vehicle.PEDESTRIAN, orangeTime);
+                    return new Lane(id, server, Vehicle.PEDESTRIAN, Settings);
                 case 3:
                 case 4:
                 case 5:
-                    return new Lane(id, server, Vehicle.CAR, orangeTime);
+                    return new Lane(id, server, Vehicle.CAR, Settings);
                 case 6:
-                    return new Lane(id, server, Vehicle.BUS, orangeTime);
+                    return new Lane(id, server, Vehicle.BUS, Settings);
                 case 7:
                 case 8:
-                    return new Lane(id, server, Vehicle.BICYCLE, orangeTime);
+                    return new Lane(id, server, Vehicle.BICYCLE, Settings);
                 default:
                     throw new ArgumentException("laneNr");
 

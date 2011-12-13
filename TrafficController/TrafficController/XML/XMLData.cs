@@ -30,10 +30,13 @@ namespace TrafficController
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(XMLData));
                 data = (XMLData)serializer.Deserialize(stream);
+                if (!data.vehicles.TrueForAll((l) => l.location != l.direction))
+                    throw new Exception("Invalid XML file: Vehicles exist which have equal direction and location.");
             }
             catch (Exception error)
             {
                 System.Windows.Forms.MessageBox.Show(error.Message);
+                data = null;
             }
             finally
             {

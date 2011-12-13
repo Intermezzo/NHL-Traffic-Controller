@@ -91,7 +91,8 @@ namespace TrafficController
                             clientStreamW.Write(newRPC.arg.ToCharArray());
 
                             clientStreamW.Flush();
-                            _logger.Log(LogType.Spam, String.Format("RPC request send to client:{0}, {1} ", newRPC.type, newRPC.arg));
+                        //    if (newRPC.arg.StartsWith("N1") || newRPC.arg.StartsWith("N2"))
+                                _logger.Log(LogType.Spam, String.Format("RPC request send to client:{0}, {1} ", newRPC.type, newRPC.arg));
                         }
                     }
                     catch(Exception e)
@@ -118,9 +119,11 @@ namespace TrafficController
                         byte cmd = clientStreamR.ReadByte();
                         int length = clientStreamR.ReadInt32();
                         string arg = new string(clientStreamR.ReadChars(length));
-
+                        arg = arg.ToUpper();
+                        
                         RPCReceiveQueue.Enqueue(new RPCData() { arg = arg, type = (int)cmd });
-                        _logger.Log(LogType.Spam, String.Format("RPC request received from client:{0}, {1} ", cmd, arg));
+                   //     if (arg.StartsWith("N1") || arg.StartsWith("N2"))
+                            _logger.Log(LogType.Spam, String.Format("RPC request received from client:{0}, {1} ", cmd, arg));
                     }
                 }
                 catch (IOException e)

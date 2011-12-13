@@ -26,13 +26,15 @@ namespace TrafficController
             _server = server;
             _settings = Settings;
 
+            _settings.orangeTime = Math.Max(_settings.orangeTime, 5);
+
             //generate all lanes
             foreach (char side in new []{'N', 'S', 'E', 'W' })
             {
                 for (int laneNr = 1; laneNr <= 8; laneNr++)
                 {
                     string id = String.Format("{0}{1}", side, laneNr);
-                    _lanes[id] = LaneFactory.FromLaneNr(id, laneNr, _server, _settings.orangeTime);
+                    _lanes[id] = LaneFactory.FromLaneNr(id, laneNr, _server, _settings);
                 }
             }
         }
@@ -60,43 +62,46 @@ namespace TrafficController
                     }
 
                     //if all active lanes are compatible give the green signal
-                    if (activeLanes.All((l) => l.IsCompatible(foo)) && foo.State != TrafficLightState.Outage)
-                    {
-                        //todo check off state
-                        if (foo.State == TrafficLightState.Red)
-                        {
-                            if (foo.Vehicle == Vehicle.BUS)
-                            {
-                                TrafficLightState newState;
-                                switch (foo.BusDirection)
-                                {
-                                    case Direction.Left:
-                                        newState = TrafficLightState.Left;
-                                        break;
-                                    case Direction.Right:
-                                        newState = TrafficLightState.Right;
-                                        break;
-                                    default:
-                                        newState = TrafficLightState.Straight;
-                                        break;
-                                }
-                                foo.SetTafficLight(newState, _settings.maxGreenTime);
-                            }
-                            else
-                                foo.SetTafficLight(TrafficLightState.Green, _settings.maxGreenTime);
-                        }
-                    }
-                    else
-                    {
-                        _waitingList.AddLast(foo);
-                    }
+                    //if (activeLanes.All((l) => l.IsCompatible(foo)) && foo.State != TrafficLightState.Outage)
+                    //{
+                        ////todo check off state
+                        //if (foo.State == TrafficLightState.Red)
+                        //{
+                        //    if (foo.Vehicle == Vehicle.BUS)
+                        //    {
+                        //        TrafficLightState newState;
+                        //        switch (foo.BusDirection)
+                        //        {
+                        //            case Direction.Left:
+                        //                newState = TrafficLightState.Left;
+                        //                break;
+                        //            case Direction.Right:
+                        //                newState = TrafficLightState.Right;
+                        //                break;
+                        //            default:
+                        //                newState = TrafficLightState.Straight;
+                        //                break;
+                        //        }
+                        //        foo.SetTafficLight(newState, _settings.maxGreenTime);
+                        //    }
+                        //    else
+                        //        foo.SetTafficLight(TrafficLightState.Green, _settings.maxGreenTime);
+                        //}
+                    //}
+                    //else
+                    //{
+                    //    _waitingList.AddLast(foo);
+                    //}
                     break;
                  case "1":
                     if (foo.Vehicle != Vehicle.CAR && foo.Vehicle != Vehicle.BUS)
-                        throw new ArgumentException("Nearing sensor should only be used for cars.");
+                        throw new ArgumentException("Passing sensors should only be used for cars or busses.");
+                    if (foo.Vehicle != Vehicle.CAR && foo.Vehicle != Vehicle.BUS)
+                        return;
+
                     foo.DecreaseQueue();
-                    if (foo.QueueCount == 0)
-                        _waitingList.Remove(foo);
+                    //if (foo.QueueCount == 0)
+                    //    _waitingList.Remove(foo);
                     break;
                 default:
                     throw new ArgumentException(string.Format("{0} not a valid distance", distance));
@@ -114,21 +119,34 @@ namespace TrafficController
         public IEnumerable<Lane> GetActiveLanes()
         {
             return _lanes.Values.Where(
-                (l) => (l.State == TrafficLightState.Green || l.State == TrafficLightState.Orange));
+                (l) => (l.State == TrafficLightState.Green || 
+                        l.State == TrafficLightState.Orange || 
+                        l.State == TrafficLightState.Right ||
+                        l.State == TrafficLightState.Left ||
+                        l.State == TrafficLightState.Straight));
         }
 
         public void Update()
         {
+
+
+            //if all active lanes are compatible give the green signal
+            var activeLanes = GetActiveLanes().ToList();
 
             foreach (KeyValuePair<string, Lane> lane in _lanes)
             {
                 lane.Value.Update();
                 if (lane.Value.QueueCount == 0 && _waitingList.Contains(lane.Value))
                     _waitingList.Remove(lane.Value);
-            }
 
-            //if all active lanes are compatible give the green signal
-            var activeLanes = GetActiveLanes().ToList();
+                if(lane.Value.QueueCount > 0 && !_waitingList.Contains(lane.Value) && !activeLanes.Contains(lane.Value))
+                    _waitingList.AddLast(lane.Value);
+
+                //if (lane.Value.Vehicle == Vehicle.BUS && 
+                //    activeLanes.Contains(lane.Value) &&
+                //    (lane.Value.QueueCount == 0 || lane.Value.BusDirection != lane.Value.BusDirections.Peek()))
+
+            }
 
             var waitingList = _waitingList.OrderByDescending((l) => l.Priority);
             foreach (Lane lane in waitingList)
@@ -171,8 +189,11 @@ namespace TrafficController
                 {
                     //find the lowest priority candidates which are passed the minimal green time and 
                     //would make this lane compatible if not active.
-                    var foo = activeLanes.FindAll((l) => l.State == TrafficLightState.Green && 
-                                                        l.TimeElapsed > _settings.minGreenTime &&
+                    var foo = activeLanes.FindAll((l) => (l.State == TrafficLightState.Green ||
+                                                        l.State == TrafficLightState.Right ||
+                                                        l.State == TrafficLightState.Left ||
+                                                        l.State == TrafficLightState.Straight) &&
+                                                        l.TimeElapsed > _settings.minGreenTime * 1000 &&
                                                         l.Priority < lane.Priority &&
                                                         !lane.IsCompatible(l));
                     bool removingGreentimeMakesCompatible = activeLanes.TrueForAll((l) => lane.IsCompatible(l) || foo.Contains(l));
