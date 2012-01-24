@@ -87,7 +87,8 @@ namespace TrafficController
                         {
                             //should be serialized in RPCData
                             clientStreamW.Write((byte)newRPC.type);
-                            clientStreamW.Write(newRPC.arg.Length);
+                            //clientStreamW.Write(newRPC.arg.Length);
+                            clientStreamW.Write((byte)newRPC.arg.Length);
                             clientStreamW.Write(newRPC.arg.ToCharArray());
 
                             clientStreamW.Flush();
@@ -117,7 +118,8 @@ namespace TrafficController
                         //should be deserialized in RPCData
 
                         byte cmd = clientStreamR.ReadByte();
-                        int length = clientStreamR.ReadInt32();
+                        int length = (int) clientStreamR.ReadByte();
+                        //int length = (int) clientStreamR.ReadInt32();
                         string arg = new string(clientStreamR.ReadChars(length));
                         arg = arg.ToUpper();
                         

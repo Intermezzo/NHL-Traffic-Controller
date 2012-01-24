@@ -94,8 +94,8 @@ namespace TrafficController
                     //}
                     break;
                  case "1":
-                    if (foo.Vehicle != Vehicle.CAR && foo.Vehicle != Vehicle.BUS)
-                        throw new ArgumentException("Passing sensors should only be used for cars or busses.");
+                    //if (foo.Vehicle != Vehicle.CAR && foo.Vehicle != Vehicle.BUS)
+                    //    throw new ArgumentException("Passing sensors should only be used for cars or busses.");
                     if (foo.Vehicle != Vehicle.CAR && foo.Vehicle != Vehicle.BUS)
                         return;
 

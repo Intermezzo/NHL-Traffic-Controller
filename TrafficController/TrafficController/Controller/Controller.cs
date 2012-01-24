@@ -72,6 +72,7 @@ namespace TrafficController
                     if (candidate != null && candidate.spawnTime < timer.ElapsedMilliseconds)
                     {
                         string arg = String.Format("{0},{1},{2}", candidate.type, candidate.location, candidate.direction);
+                    //    if (candidate.type != "PEDESTRIAN" && candidate.type != "BICYCLE")
                         _server.RPCSendQueue.Enqueue(new RPCData() { type = 0, arg = arg });
                         //if (candidate.location == "N" && candidate.type == "PEDESTRIAN")
                         //    _controllerDialog.LoggerControl.Log(LogType.Spam, String.Format("Vehicle {0} spawned on {1}", candidate.type, candidate.location));

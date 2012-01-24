@@ -118,8 +118,8 @@ namespace TrafficController
         public int Priority 
         { 
             get 
-            { return _priority + Math.Max(QueueCount, 30) + 
-                Math.Max(0, Math.Min((int)waitTimer.ElapsedMilliseconds/1000 - _priority, 500)); 
+            { return _priority + Math.Max(QueueCount, 30) +
+                Math.Max(0, Math.Min((int)waitTimer.ElapsedMilliseconds / (_vehicle == Vehicle.BICYCLE || _vehicle == Vehicle.PEDESTRIAN ? 500 : 1000) - _priority, 500)); 
             } 
         }
 
@@ -168,7 +168,7 @@ namespace TrafficController
 
         public void IncreaseQueue()
         {
-            _queueCount = this.Vehicle == Vehicle.CAR || this.Vehicle == Vehicle.BUS ? _queueCount + 1 : 1;
+            _queueCount = (this.Vehicle == Vehicle.CAR || this.Vehicle == Vehicle.BUS) ? _queueCount + 1 : 1;
 
             if(!waitTimer.IsRunning)
                 waitTimer.Start();
